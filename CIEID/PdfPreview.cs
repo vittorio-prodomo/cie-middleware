@@ -103,14 +103,11 @@ namespace CIEID
             pdfNumPages = getPdfNumPages(filePath);
 
 
-            Bitmap signImage = new Bitmap(Image.FromFile(signImagePath), 90, 27);
-            signImage.MakeTransparent();
+            Image originalImage = Image.FromFile(signImagePath);
 
             signPicture = new MoveablePictureBox();
-            signPicture.Image = signImage;
+            signPicture.SetImage(originalImage, 150);
             signPicture.BackColor = Color.Transparent;
-            signPicture.Width = signImage.Width;
-            signPicture.Height = signImage.Height;
             signPicture.BringToFront();
             signPicture.BorderStyle = BorderStyle.FixedSingle;
 
