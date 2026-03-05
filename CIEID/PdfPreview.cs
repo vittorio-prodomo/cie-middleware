@@ -20,6 +20,9 @@ namespace CIEID
         private PictureBox pbPdfPreview;
         private MoveablePictureBox signPicture;
 
+        public MoveablePictureBox SignPicture => signPicture;
+        public PictureBox PbPdfPreview => pbPdfPreview;
+
         private int getPdfNumPages(string fileName)
         {
 
@@ -195,7 +198,7 @@ namespace CIEID
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = mutoolPath,
-                    Arguments = string.Format("{0} \"{1}\" \"{2}\" {3}", "draw -o", tmpFolderName + "\\page%d.png", filePath, pageNumber),
+                    Arguments = string.Format("{0} \"{1}\" \"{2}\" {3}", "draw -r 150 -o", tmpFolderName + "\\page%d.png", filePath, pageNumber),
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     CreateNoWindow = true
@@ -211,24 +214,64 @@ namespace CIEID
             }
 
             Image img = Image.FromFile(img_file_name);
-            if(img.Width > img.Height)
+            float imgAspect = (float)img.Width / img.Height;
+            int parentW = pbPdfPreview.Parent.Width;
+            int parentH = pbPdfPreview.Parent.Height;
+
+            // Fit image within parent while preserving aspect ratio
+            int targetW, targetH;
+            if ((float)parentW / parentH > imgAspect)
             {
-                pbPdfPreview.Width = pbPdfPreview.Parent.Width - 10;
-                pbPdfPreview.Height = pbPdfPreview.Parent.Height;
-                pbPdfPreview.Left = 5;
-                pbPdfPreview.Top = 0;
+                // Parent is wider than image — constrain by height
+                targetH = parentH;
+                targetW = (int)(targetH * imgAspect);
             }
             else
             {
-                pbPdfPreview.Width = (pbPdfPreview.Parent.Width)/2;
-                pbPdfPreview.Height = pbPdfPreview.Parent.Height;
-                pbPdfPreview.Left = (pbPdfPreview.Parent.Width) / 4;
-                pbPdfPreview.Top = 0;
+                // Parent is taller than image — constrain by width
+                targetW = parentW - 10;
+                targetH = (int)(targetW / imgAspect);
             }
 
-            Bitmap croppedImage = new Bitmap(img, pbPdfPreview.Width, pbPdfPreview.Height);
-            pbPdfPreview.Image = croppedImage;
+            pbPdfPreview.Width = targetW;
+            pbPdfPreview.Height = targetH;
+            pbPdfPreview.Left = (parentW - targetW) / 2;
+            pbPdfPreview.Top = (parentH - targetH) / 2;
+
+            Bitmap scaledImage = new Bitmap(img, targetW, targetH);
+            pbPdfPreview.Image = scaledImage;
             pbPdfPreview.SendToBack();
+        }
+
+        public void RefreshPreview()
+        {
+            if (pbPdfPreview == null || signPicture == null) return;
+
+            // Save signature position as ratios
+            float relX = (pbPdfPreview.Width > 0) ? (float)signPicture.Left / pbPdfPreview.Width : 0;
+            float relY = (pbPdfPreview.Height > 0) ? (float)signPicture.Top / pbPdfPreview.Height : 0;
+            float relW = (pbPdfPreview.Width > 0) ? (float)signPicture.Width / pbPdfPreview.Width : 0;
+            float aspectRatio = (signPicture.Height > 0) ? (float)signPicture.Width / signPicture.Height : 1;
+
+            showPreview();
+
+            // Restore signature position from ratios
+            int newW = Math.Max(30, (int)(relW * pbPdfPreview.Width));
+            int newH = (int)(newW / aspectRatio);
+            if (newH < 10) newH = 10;
+
+            signPicture.Width = newW;
+            signPicture.Height = newH;
+            signPicture.Left = (int)(relX * pbPdfPreview.Width);
+            signPicture.Top = (int)(relY * pbPdfPreview.Height);
+
+            // Clamp to bounds
+            if (signPicture.Right > pbPdfPreview.Width)
+                signPicture.Left = pbPdfPreview.Width - signPicture.Width;
+            if (signPicture.Bottom > pbPdfPreview.Height)
+                signPicture.Top = pbPdfPreview.Height - signPicture.Height;
+            if (signPicture.Left < 0) signPicture.Left = 0;
+            if (signPicture.Top < 0) signPicture.Top = 0;
         }
 
     }

@@ -85,6 +85,9 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="PdfPreview.cs" />
+    <Compile Include="SignaturePreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="PINNotice.cs">
       <SubType>Form</SubType>
     </Compile>

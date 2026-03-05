@@ -40,6 +40,8 @@ namespace CIEID
         public const int NOT_ENROLLED = 0;
 
         private PdfPreview pdfPreview = null;
+        private Dictionary<string, float> cachedSignImageInfos = null;
+        private string cachedSignImagePath = null;
         private enum OperationSelectedState
         {
             NO_OP = 0,
@@ -1723,24 +1725,20 @@ namespace CIEID
                     DrawText(nameInfo.ToTitleCase(name.ToLower()), Color.Black, signImagePath);
                 }
 
-                labelFileNamePathInDragSignatureBox.Text = labelFileNamePathInSigningFormatChooser.Text;
-
-                upButton.Enabled = true;
-                downButton.Enabled = true;
-
-                if (pdfPreview != null)
+                using (var previewForm = new SignaturePreviewForm(labelFileNamePathInSigningFormatChooser.Text, signImagePath))
                 {
-                    pdfPreview.pdfPreviewRemoveObjects();
+                    if (previewForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        cachedSignImageInfos = previewForm.SignImageInfos;
+                        cachedSignImagePath = previewForm.SignImagePath;
+                        labelFileNamePathSigningOperation.Text = labelFileNamePathInSigningFormatChooser.Text;
+                        mainTabControl.SelectedIndex = 14;
+                    }
+                    else
+                    {
+                        return;
+                    }
                 }
-
-                pdfPreview = new PdfPreview(panePreview, labelFileNamePathInDragSignatureBox.Text, signImagePath);
-                if (pdfPreview.getPdfPages() <= 1)
-                {
-                    upButton.Enabled = false;
-                    downButton.Enabled = false;
-                }
-
-                mainTabControl.SelectedIndex = 13;
             }
             else
             {
@@ -1917,12 +1915,11 @@ namespace CIEID
                     model = carouselControl.ActiveCieModel;
 
                 int ret = 0;
-                if (enableGraphicSignatureCheckBox.Checked && (signOp == OperationSelectedState.PADES_SIGNATURE))
+                if (enableGraphicSignatureCheckBox.Checked && (signOp == OperationSelectedState.PADES_SIGNATURE) && cachedSignImageInfos != null)
                 {
                     Console.WriteLine("Pades con grafica");
-                    Dictionary<string, float> signImageInfo = pdfPreview.getSignImageInfos();
-                    ret = firmaConCIE(labelFileNamePathSigningOperation.Text, "pdf", PIN, (shouldSignWithoutCIEPairing) ? PANForOneShotSigning : model.Pan, (int)signImageInfo["pageNumber"], signImageInfo["x"], signImageInfo["y"], signImageInfo["w"], signImageInfo["h"],
-                                      pdfPreview.getSignImagePath(), pathToSaveFile, new ProgressCallback(SignProgress), new SignCompletedCallback(SignCompleted));
+                    ret = firmaConCIE(labelFileNamePathSigningOperation.Text, "pdf", PIN, (shouldSignWithoutCIEPairing) ? PANForOneShotSigning : model.Pan, (int)cachedSignImageInfos["pageNumber"], cachedSignImageInfos["x"], cachedSignImageInfos["y"], cachedSignImageInfos["w"], cachedSignImageInfos["h"],
+                                      cachedSignImagePath, pathToSaveFile, new ProgressCallback(SignProgress), new SignCompletedCallback(SignCompleted));
                 }
                 else if (signOp == OperationSelectedState.PADES_SIGNATURE)
                 {
