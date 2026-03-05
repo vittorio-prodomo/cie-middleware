@@ -1,5 +1,20 @@
-# MIDDLEWARE CSP-PKCS11 PER LA CIE 3.0 [![Build status](https://ci.appveyor.com/api/projects/status/dpc0ditjn04ylw6y?svg=true)](https://ci.appveyor.com/project/italia/cie-middleware)
+# MIDDLEWARE CSP-PKCS11 PER LA CIE 3.0 (Fork non ufficiale)
 
+> **Nota:** Questo è un fork non ufficiale del [repository originale](https://github.com/italia/cie-middleware) mantenuto da [@vittorio-prodomo](https://github.com/vittorio-prodomo).
+>
+> Il motivo di questo fork è la necessità di miglioramenti rapidi alla qualità d’uso (QoL) dell’applicazione CIE ID, in particolare nella funzionalità di firma digitale con firma grafica, senza dover attendere i tempi di rilascio dei manutentori ufficiali.
+>
+> **Modifiche principali rispetto all’upstream:**
+> - Anteprima PDF in finestra separata ridimensionabile (per leggere meglio il testo e posizionare la firma con precisione)
+> - Rendering PDF a risoluzione più alta (150 DPI invece di 72)
+> - Correzione del rapporto d’aspetto dell’anteprima PDF (non più distorto)
+> - Maniglie di ridimensionamento visibili (cerchi blu) sulla firma grafica, con supporto a tutti gli 8 punti (angoli + punti medi)
+> - Ridimensionamento da angolo con blocco del rapporto d’aspetto corrente, ridimensionamento da punto medio libero
+> - Doppio clic sulla firma per ripristinare il rapporto d’aspetto originale dell’immagine
+>
+> **Installazione:** Il file `CIEID.exe` fornito nelle [Release](https://github.com/vittorio-prodomo/cie-middleware/releases) è un sostituto drop-in dell’eseguibile installato dal Setup ufficiale. È sufficiente sostituire il file in `C:\Program Files (x86)\CIEPKI\CIEID.exe` (richiede privilegi di amministratore). Non è necessario reinstallare il middleware.
+
+---
 
 ## CASO D’USO
 
